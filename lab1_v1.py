@@ -19,23 +19,30 @@ def bfs(maze, start, finish):
 
     visited = set()
     visited.add(start)
+    parent = {start: None}  # track where each cell was reached from
     queue = deque([start])
     visited_order = []
 
-    # Explore the maze level by level using a queue
     while queue:
         current = queue.popleft()
         visited_order.append(current)
 
         if current == finish:
-            # TODO: reconstruct actual path length
-            return len(visited_order), visited_order
+            # Reconstruct path by following parent pointers back to start
+            path = []
+            node = finish
+            while node is not None:
+                path.append(node)
+                node = parent[node]
+            path.reverse()
+            return len(path) - 1, visited_order
 
         r, c = current
         for dr, dc in directions:
             nr, nc = r + dr, c + dc
             if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0 and (nr, nc) not in visited:
                 visited.add((nr, nc))
+                parent[(nr, nc)] = current
                 queue.append((nr, nc))
 
     return -1, visited_order
@@ -83,8 +90,7 @@ finish_position = (4, 4)
 
 num_steps_bfs, viz_bfs = bfs(maze, start_position, finish_position)
 
-print(f"BFS explored {len(viz_bfs)} cells")
 if num_steps_bfs != -1:
-    print(f"Found finish after visiting {num_steps_bfs} cells (not path length yet)")
+    print(f"Path from {start_position} to {finish_position} using BFS is {num_steps_bfs} steps.")
 else:
-    print("No path found")
+    print(f"No path from {start_position} to {finish_position} exists.")
