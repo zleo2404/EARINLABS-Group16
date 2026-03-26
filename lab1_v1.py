@@ -19,7 +19,7 @@ def bfs(maze, start, finish):
 
     visited = set()
     visited.add(start)
-    parent = {start: None}  # track where each cell was reached from
+    parent = {start: None}
     queue = deque([start])
     visited_order = []
 
@@ -28,7 +28,6 @@ def bfs(maze, start, finish):
         visited_order.append(current)
 
         if current == finish:
-            # Reconstruct path by following parent pointers back to start
             path = []
             node = finish
             while node is not None:
@@ -61,8 +60,33 @@ def dfs(maze, start, finish):
     - Number of steps from start to finish, equals -1 if the path is not found
     - Viz - everything required for step-by-step vizualization
     """
-    # TODO: implement DFS
-    pass
+    rows, cols = len(maze), len(maze[0])
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    visited = set()
+    stack = [start]
+    visited_order = []
+
+    # Explore using a stack (LIFO) instead of a queue
+    while stack:
+        current = stack.pop()
+
+        if current in visited:
+            continue
+        visited.add(current)
+        visited_order.append(current)
+
+        if current == finish:
+            # TODO: reconstruct actual path length
+            return len(visited_order), visited_order
+
+        r, c = current
+        for dr, dc in directions:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0 and (nr, nc) not in visited:
+                stack.append((nr, nc))
+
+    return -1, visited_order
 
 
 def vizualize(viz):
@@ -89,8 +113,14 @@ start_position = (0, 0)
 finish_position = (4, 4)
 
 num_steps_bfs, viz_bfs = bfs(maze, start_position, finish_position)
+num_steps_dfs, viz_dfs = dfs(maze, start_position, finish_position)
 
 if num_steps_bfs != -1:
     print(f"Path from {start_position} to {finish_position} using BFS is {num_steps_bfs} steps.")
 else:
     print(f"No path from {start_position} to {finish_position} exists.")
+
+if num_steps_dfs != -1:
+    print(f"DFS explored {len(viz_dfs)} cells, found finish after visiting {num_steps_dfs} cells (not path length yet)")
+else:
+    print(f"DFS: no path from {start_position} to {finish_position}.")
