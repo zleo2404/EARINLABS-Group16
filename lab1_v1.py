@@ -18,27 +18,26 @@ def bfs(maze, start, finish):
     """
     rows = len(maze)
     cols = len(maze[0]) if rows > 0 else 0
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     
-    # Queue stores tuples of (current_position, current_steps)
+    #the queue contains tuples of (current_position, current_steps)
     queue = deque([(start, 0)])
     visited = set([start])
-    visited_order = [] # To track the exact order for visualization
+    visited_order = [] #for tracking the order
 
     while queue:
-        current, steps = queue.popleft()
+        current, steps = queue.popleft() #popleft so we can get always the element in the first position
         visited_order.append(current)
 
         if current == finish:
-            # Bundle all data needed for visualization into a dictionary
-            viz = {'maze': maze, 'start': start, 'finish': finish, 'visited_order': visited_order, 'name': 'BFS'}
+            viz = {'maze': maze, 'start': start, 'finish': finish, 'visited_order': visited_order, 'name': 'BFS'} #dictionary that contains evrything for the visualization
             return steps, viz
 
         r, c = current
-        # Check all 4 directions (Up, Down, Left, Right)
-        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        for dr, dc in directions:
             nr, nc = r + dr, c + dc
             
-            # Check boundaries and walls
+            #check that we are inside the maze and it's not a wall
             if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0:
                 if (nr, nc) not in visited:
                     visited.add((nr, nc))
@@ -63,14 +62,15 @@ def dfs(maze, start, finish):
     """
     rows = len(maze)
     cols = len(maze[0]) if rows > 0 else 0
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     
-    # Stack stores tuples of (current_position, current_steps)
+    #the stack is made as the same concept as the queue
     stack = [(start, 0)]
     visited = set([start])
     visited_order = []
 
     while stack:
-        current, steps = stack.pop()
+        current, steps = stack.pop() #pop because we need to explore all the newest nodes first
         visited_order.append(current)
 
         if current == finish:
@@ -78,8 +78,7 @@ def dfs(maze, start, finish):
             return steps, viz
 
         r, c = current
-        # Check all 4 directions (Up, Down, Left, Right)
-        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        for dr, dc in directions:
             nr, nc = r + dr, c + dc
             
             if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0:
@@ -114,29 +113,29 @@ def vizualize(viz):
     for step, current in enumerate(visited_order):
         current_visited.add(current)
         
-        # Clear the terminal for animation effect
+        #using cls for cleaning the console
         os.system('cls' if os.name == 'nt' else 'clear')
         print(f"--- Algorithm: {algo_name} | Step: {step + 1} ---")
         
         for r in range(rows):
             row_str = ""
             for c in range(cols):
+                #check the current coordintes for printing the correct symbol
                 if (r, c) == start:
                     row_str += " S "
                 elif (r, c) == finish:
                     row_str += " E "
                 elif (r, c) == current:
-                    row_str += " @ " # The current "head" of the search
+                    row_str += " @ " #head of the search
                 elif (r, c) in current_visited:
-                    row_str += " . " # Previously visited cells
+                    row_str += " . " #previously visited cells
                 elif maze[r][c] == 1:
-                    row_str += "###" # Walls
+                    row_str += "###"
                 else:
-                    row_str += "   " # Empty unvisited space
+                    row_str += "   " #unvisited space
             print(row_str)
         
-        # Pause to create a frame-by-frame animation
-        time.sleep(0.15)
+        time.sleep(0.5)
         
     print(f"{algo_name} Visualization Complete.\n")
 
@@ -151,7 +150,7 @@ maze = [
 ]
 
 start_position = (0, 0)
-finish_position = (4, 4)
+finish_position = (4, 0)
 
 num_steps_bfs, viz_bfs = bfs(maze, start_position, finish_position)
 num_steps_dfs, viz_dfs = dfs(maze, start_position, finish_position)
