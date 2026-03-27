@@ -64,10 +64,10 @@ def dfs(maze, start, finish):
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
     visited = set()
+    parent = {start: None}
     stack = [start]
     visited_order = []
 
-    # Explore using a stack (LIFO) instead of a queue
     while stack:
         current = stack.pop()
 
@@ -77,13 +77,20 @@ def dfs(maze, start, finish):
         visited_order.append(current)
 
         if current == finish:
-            # TODO: reconstruct actual path length
-            return len(visited_order), visited_order
+            # Reconstruct path using parent pointers
+            path = []
+            node = finish
+            while node is not None:
+                path.append(node)
+                node = parent[node]
+            path.reverse()
+            return len(path) - 1, visited_order
 
         r, c = current
         for dr, dc in directions:
             nr, nc = r + dr, c + dc
             if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0 and (nr, nc) not in visited:
+                parent[(nr, nc)] = current
                 stack.append((nr, nc))
 
     return -1, visited_order
@@ -121,6 +128,6 @@ else:
     print(f"No path from {start_position} to {finish_position} exists.")
 
 if num_steps_dfs != -1:
-    print(f"DFS explored {len(viz_dfs)} cells, found finish after visiting {num_steps_dfs} cells (not path length yet)")
+    print(f"Path from {start_position} to {finish_position} using DFS is {num_steps_dfs} steps.")
 else:
-    print(f"DFS: no path from {start_position} to {finish_position}.")
+    print(f"No path from {start_position} to {finish_position} exists.")
