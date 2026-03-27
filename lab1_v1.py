@@ -2,6 +2,7 @@ from collections import deque
 import time
 import os
 
+
 def bfs(maze, start, finish):
     """
     Breadth-first search
@@ -18,6 +19,11 @@ def bfs(maze, start, finish):
     """
     rows = len(maze)
     cols = len(maze[0]) if rows > 0 else 0
+
+    if maze[start[0]][start[1]] == 1 or maze[finish[0]][finish[1]] == 1:
+        viz = {'maze': maze, 'start': start, 'finish': finish, 'visited_order': [], 'name': 'BFS'}
+        return -1, viz
+    
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     
     #the queue contains tuples of (current_position, current_steps)
@@ -46,6 +52,7 @@ def bfs(maze, start, finish):
     viz = {'maze': maze, 'start': start, 'finish': finish, 'visited_order': visited_order, 'name': 'BFS'}
     return -1, viz
 
+
 def dfs(maze, start, finish):
     """
     Depth-first search
@@ -62,6 +69,11 @@ def dfs(maze, start, finish):
     """
     rows = len(maze)
     cols = len(maze[0]) if rows > 0 else 0
+    
+    if maze[start[0]][start[1]] == 1 or maze[finish[0]][finish[1]] == 1:
+        viz = {'maze': maze, 'start': start, 'finish': finish, 'visited_order': [], 'name': 'BFS'}
+        return -1, viz
+    
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     
     #the stack is made as the same concept as the queue
@@ -88,6 +100,7 @@ def dfs(maze, start, finish):
 
     viz = {'maze': maze, 'start': start, 'finish': finish, 'visited_order': visited_order, 'name': 'DFS'}
     return -1, viz
+
 
 def vizualize(viz):
     """
@@ -203,6 +216,24 @@ def run_custom_tests():
             ],
             "start": (0, 0),
             "finish": (3, 4)
+        },
+        "Start and End are the same": {
+            "maze": [
+                [0, 0, 0],
+                [0, 1, 0],
+                [0, 0, 0]
+            ],
+            "start": (0, 0),
+            "finish": (0, 0)
+        },
+        "Start inside a wall": {
+            "maze": [
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 0]
+            ],
+            "start": (0, 0), 
+            "finish": (2, 2)
         }
     }
 
@@ -212,8 +243,5 @@ def run_custom_tests():
         d_steps, d_viz = dfs(data["maze"], data["start"], data["finish"])
         print(f"BFS Steps: {b_steps} (Visited {len(b_viz['visited_order'])} cells)")
         print(f"DFS Steps: {d_steps} (Visited {len(d_viz['visited_order'])} cells)")
-
-        # vizualize(b_viz)
-        # vizualize(d_viz)
 
 run_custom_tests()
