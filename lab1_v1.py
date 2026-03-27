@@ -34,7 +34,9 @@ def bfs(maze, start, finish):
                 path.append(node)
                 node = parent[node]
             path.reverse()
-            return len(path) - 1, visited_order
+
+            viz = {"maze": maze, "visited_order": visited_order, "path": path, "name": "BFS"}
+            return len(path) - 1, viz
 
         r, c = current
         for dr, dc in directions:
@@ -44,7 +46,8 @@ def bfs(maze, start, finish):
                 parent[(nr, nc)] = current
                 queue.append((nr, nc))
 
-    return -1, visited_order
+    viz = {"maze": maze, "visited_order": visited_order, "path": [], "name": "BFS"}
+    return -1, viz
 
 
 def dfs(maze, start, finish):
@@ -77,14 +80,15 @@ def dfs(maze, start, finish):
         visited_order.append(current)
 
         if current == finish:
-            # Reconstruct path using parent pointers
             path = []
             node = finish
             while node is not None:
                 path.append(node)
                 node = parent[node]
             path.reverse()
-            return len(path) - 1, visited_order
+
+            viz = {"maze": maze, "visited_order": visited_order, "path": path, "name": "DFS"}
+            return len(path) - 1, viz
 
         r, c = current
         for dr, dc in directions:
@@ -93,7 +97,8 @@ def dfs(maze, start, finish):
                 parent[(nr, nc)] = current
                 stack.append((nr, nc))
 
-    return -1, visited_order
+    viz = {"maze": maze, "visited_order": visited_order, "path": [], "name": "DFS"}
+    return -1, viz
 
 
 def vizualize(viz):
@@ -103,8 +108,20 @@ def vizualize(viz):
     Parameters:
     - viz: Everything required for vizualization
     """
-    # TODO: implement visualization
-    pass
+    visited_order = viz["visited_order"]
+    path = viz["path"]
+    name = viz["name"]
+
+    # Simple text listing of visited cells
+    print(f"\n--- {name} ---")
+    print(f"Visited {len(visited_order)} cells in this order:")
+    for step, cell in enumerate(visited_order):
+        print(f"  Step {step}: {cell}")
+
+    if path:
+        print(f"Path ({len(path) - 1} steps): {' -> '.join(str(p) for p in path)}")
+    else:
+        print("No path found!")
 
 
 # Example usage:
@@ -123,11 +140,14 @@ num_steps_bfs, viz_bfs = bfs(maze, start_position, finish_position)
 num_steps_dfs, viz_dfs = dfs(maze, start_position, finish_position)
 
 if num_steps_bfs != -1:
-    print(f"Path from {start_position} to {finish_position} using BFS is {num_steps_bfs} steps.")
+    print(f"Path from {start_position} to {finish_position} using bfs is {num_steps_bfs} steps.")
 else:
     print(f"No path from {start_position} to {finish_position} exists.")
 
 if num_steps_dfs != -1:
-    print(f"Path from {start_position} to {finish_position} using DFS is {num_steps_dfs} steps.")
+    print(f"Path from {start_position} to {finish_position} using dfs is {num_steps_dfs} steps.")
 else:
     print(f"No path from {start_position} to {finish_position} exists.")
+
+vizualize(viz_bfs)
+vizualize(viz_dfs)
