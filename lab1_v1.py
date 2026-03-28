@@ -151,30 +151,66 @@ def vizualize(viz):
         print("\nNo path found!")
 
 
-# Example usage:
-maze = [
+def run_test(name, maze, start, finish):
+    """Helper to run and display a test case."""
+    print(f"\n{'#'*50}")
+    print(f" TEST: {name}")
+    print(f"{'#'*50}")
+
+    num_steps_bfs, viz_bfs = bfs(maze, start, finish)
+    num_steps_dfs, viz_dfs = dfs(maze, start, finish)
+
+    if num_steps_bfs != -1:
+        print(f"BFS: path from {start} to {finish} is {num_steps_bfs} steps.")
+    else:
+        print(f"BFS: no path from {start} to {finish}.")
+
+    if num_steps_dfs != -1:
+        print(f"DFS: path from {start} to {finish} is {num_steps_dfs} steps.")
+    else:
+        print(f"DFS: no path from {start} to {finish}.")
+
+    vizualize(viz_bfs)
+    vizualize(viz_dfs)
+
+
+# Test 1: Normal case (from template)
+maze1 = [
     [0, 1, 0, 0, 0],
     [0, 1, 0, 1, 0],
     [0, 0, 0, 1, 0],
     [1, 0, 1, 0, 0],
     [0, 0, 0, 1, 0]
 ]
+run_test("Normal maze", maze1, (0, 0), (4, 4))
 
-start_position = (0, 0)
-finish_position = (4, 4)
+# Test 2: No path exists
+maze2 = [
+    [0, 1, 0],
+    [1, 1, 0],
+    [0, 0, 0]
+]
+run_test("No path (blocked start)", maze2, (0, 0), (2, 2))
 
-num_steps_bfs, viz_bfs = bfs(maze, start_position, finish_position)
-num_steps_dfs, viz_dfs = dfs(maze, start_position, finish_position)
+# Test 3: Start equals finish
+maze3 = [
+    [0, 0],
+    [0, 0]
+]
+run_test("Start == Finish", maze3, (0, 0), (0, 0))
 
-if num_steps_bfs != -1:
-    print(f"Path from {start_position} to {finish_position} using bfs is {num_steps_bfs} steps.")
-else:
-    print(f"No path from {start_position} to {finish_position} exists.")
+# Test 4: 1x1 maze
+maze4 = [[0]]
+run_test("1x1 maze", maze4, (0, 0), (0, 0))
 
-if num_steps_dfs != -1:
-    print(f"Path from {start_position} to {finish_position} using dfs is {num_steps_dfs} steps.")
-else:
-    print(f"No path from {start_position} to {finish_position} exists.")
-
-vizualize(viz_bfs)
-vizualize(viz_dfs)
+# Test 5: Larger complex maze
+maze5 = [
+    [0, 0, 1, 0, 0, 0, 0],
+    [0, 1, 1, 0, 1, 1, 0],
+    [0, 0, 0, 0, 0, 1, 0],
+    [1, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 1],
+    [0, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 1, 0]
+]
+run_test("Complex maze", maze5, (0, 0), (6, 6))
