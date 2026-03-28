@@ -108,20 +108,47 @@ def vizualize(viz):
     Parameters:
     - viz: Everything required for vizualization
     """
+    maze = viz["maze"]
     visited_order = viz["visited_order"]
     path = viz["path"]
     name = viz["name"]
+    rows, cols = len(maze), len(maze[0])
+    path_set = set(path)
+    visited_set = set(visited_order)
 
-    # Simple text listing of visited cells
-    print(f"\n--- {name} ---")
-    print(f"Visited {len(visited_order)} cells in this order:")
+    print(f"\n{'='*40}")
+    print(f" {name} Visualization")
+    print(f"{'='*40}")
+
+    # Print exploration order
+    print(f"\nVisited {len(visited_order)} cells in this order:")
     for step, cell in enumerate(visited_order):
         print(f"  Step {step}: {cell}")
 
+    # Print maze grid with markers
+    print(f"\nFinal state (. = empty, # = wall, * = visited, P = path, S = start, F = finish):")
+    for r in range(rows):
+        row_str = ""
+        for c in range(cols):
+            pos = (r, c)
+            if path and pos == path[0]:
+                row_str += "S "
+            elif path and pos == path[-1]:
+                row_str += "F "
+            elif pos in path_set:
+                row_str += "P "
+            elif pos in visited_set:
+                row_str += "* "
+            elif maze[r][c] == 1:
+                row_str += "# "
+            else:
+                row_str += ". "
+        print(f"  {row_str}")
+
     if path:
-        print(f"Path ({len(path) - 1} steps): {' -> '.join(str(p) for p in path)}")
+        print(f"\nPath ({len(path) - 1} steps): {' -> '.join(str(p) for p in path)}")
     else:
-        print("No path found!")
+        print("\nNo path found!")
 
 
 # Example usage:
