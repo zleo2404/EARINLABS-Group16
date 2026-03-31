@@ -5,7 +5,6 @@ import os
 
 # Helper
 def get_path(parent, finish):
-    """Ricostruisce il percorso a ritroso partendo dal nodo finale"""
     path = []
     node = finish
     while node is not None:
