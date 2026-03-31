@@ -1,4 +1,63 @@
 from collections import deque
+import os
+import time
+
+
+def build_viz(maze, start, finish, visited_order, path, name):
+    return {
+        "maze": maze,
+        "start": start,
+        "finish": finish,
+        "visited_order": visited_order,
+        "path": path,
+        "name": name,
+    }
+
+
+# Helper
+def get_path(parent, finish):
+    path = []
+    node = finish
+    while node is not None:
+        path.append(node)
+        node = parent[node]
+    path.reverse()
+    return path
+
+
+def validate_position(position, rows, cols):
+    if not isinstance(position, (tuple, list)) or len(position) != 2:
+        return False
+
+    row, col = position
+    if not isinstance(row, int) or not isinstance(col, int):
+        return False
+
+    return 0 <= row < rows and 0 <= col < cols
+
+
+def validate_maze_input(maze, start, finish):
+    if not isinstance(maze, list) or len(maze) == 0:
+        return False, 0, 0
+
+    if not all(isinstance(row, list) for row in maze):
+        return False, 0, 0
+
+    cols = len(maze[0])
+    if cols == 0:
+        return False, 0, 0
+
+    if any(len(row) != cols for row in maze):
+        return False, 0, 0
+
+    rows = len(maze)
+    if not validate_position(start, rows, cols):
+        return False, 0, 0
+
+    if not validate_position(finish, rows, cols):
+        return False, 0, 0
+
+    return True, rows, cols
 
 
 def bfs(maze, start, finish):
@@ -13,41 +72,47 @@ def bfs(maze, start, finish):
     Returns:
     - Number of steps from start to finish, equals -1 if the path is not found
     - Viz - anything required for step-by-step vizualization
+
     """
-    rows, cols = len(maze), len(maze[0])
+    is_valid_input, rows, cols = validate_maze_input(maze, start, finish)
+    if not is_valid_input:
+        return -1, build_viz(maze, start, finish, [], [], "BFS")
+
+    if maze[start[0]][start[1]] == 1 or maze[finish[0]][finish[1]] == 1:
+        return -1, build_viz(maze, start, finish, [], [], "BFS")
+
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
-    visited = set()
-    visited.add(start)
-    parent = {start: None}
-    queue = deque([start])
+    # the queue contains tuples of (current_position, current_steps)
+    queue = deque([(start, 0)])
+    visited = {start}
     visited_order = []
+    parent = {start: None}
 
     while queue:
-        current = queue.popleft()
+        current, steps = (
+            queue.popleft()
+        )  # popleft so we can always get the element in the first position
         visited_order.append(current)
 
         if current == finish:
-            path = []
-            node = finish
-            while node is not None:
-                path.append(node)
-                node = parent[node]
-            path.reverse()
-
-            viz = {"maze": maze, "visited_order": visited_order, "path": path, "name": "BFS"}
-            return len(path) - 1, viz
+            path = get_path(parent, finish)
+            return len(path) - 1, build_viz(
+                maze, start, finish, visited_order, path, "BFS"
+            )
 
         r, c = current
         for dr, dc in directions:
             nr, nc = r + dr, c + dc
-            if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0 and (nr, nc) not in visited:
-                visited.add((nr, nc))
-                parent[(nr, nc)] = current
-                queue.append((nr, nc))
 
-    viz = {"maze": maze, "visited_order": visited_order, "path": [], "name": "BFS"}
-    return -1, viz
+            # check that we are inside the maze and it's not a wall
+            if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0:
+                if (nr, nc) not in visited:
+                    visited.add((nr, nc))
+                    queue.append(((nr, nc), steps + 1))
+                    parent[(nr, nc)] = current
+
+    return -1, build_viz(maze, start, finish, visited_order, [], "BFS")
 
 
 def dfs(maze, start, finish):
@@ -62,43 +127,45 @@ def dfs(maze, start, finish):
     Returns:
     - Number of steps from start to finish, equals -1 if the path is not found
     - Viz - everything required for step-by-step vizualization
+
     """
-    rows, cols = len(maze), len(maze[0])
+    is_valid_input, rows, cols = validate_maze_input(maze, start, finish)
+    if not is_valid_input:
+        return -1, build_viz(maze, start, finish, [], [], "DFS")
+
+    if maze[start[0]][start[1]] == 1 or maze[finish[0]][finish[1]] == 1:
+        return -1, build_viz(maze, start, finish, [], [], "DFS")
+
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
-    visited = set()
-    parent = {start: None}
-    stack = [start]
+    stack = [(start, 0)]
+    visited = {start}
     visited_order = []
+    parent = {start: None}
 
     while stack:
-        current = stack.pop()
-
-        if current in visited:
-            continue
-        visited.add(current)
+        current, steps = (
+            stack.pop()
+        )  # pop because we need to explore all the newest nodes first.
         visited_order.append(current)
 
         if current == finish:
-            path = []
-            node = finish
-            while node is not None:
-                path.append(node)
-                node = parent[node]
-            path.reverse()
-
-            viz = {"maze": maze, "visited_order": visited_order, "path": path, "name": "DFS"}
-            return len(path) - 1, viz
+            path = get_path(parent, finish)
+            return len(path) - 1, build_viz(
+                maze, start, finish, visited_order, path, "DFS"
+            )
 
         r, c = current
         for dr, dc in directions:
             nr, nc = r + dr, c + dc
-            if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0 and (nr, nc) not in visited:
-                parent[(nr, nc)] = current
-                stack.append((nr, nc))
 
-    viz = {"maze": maze, "visited_order": visited_order, "path": [], "name": "DFS"}
-    return -1, viz
+            if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0:
+                if (nr, nc) not in visited:
+                    visited.add((nr, nc))
+                    stack.append(((nr, nc), steps + 1))
+                    parent[(nr, nc)] = current
+
+    return -1, build_viz(maze, start, finish, visited_order, [], "DFS")
 
 
 def vizualize(viz):
@@ -109,108 +176,225 @@ def vizualize(viz):
     - viz: Everything required for vizualization
     """
     maze = viz["maze"]
+    start = viz["start"]
+    finish = viz["finish"]
     visited_order = viz["visited_order"]
     path = viz["path"]
-    name = viz["name"]
-    rows, cols = len(maze), len(maze[0])
-    path_set = set(path)
-    visited_set = set(visited_order)
+    algo_name = viz["name"]
 
-    print(f"\n{'='*40}")
-    print(f" {name} Visualization")
-    print(f"{'='*40}")
+    valid_shape, rows, cols = validate_maze_input(maze, start, finish)
+    if not valid_shape:
+        print(f"\n--- Algorithm: {algo_name} ---")
+        print("Invalid or empty maze.")
+        print(f"{algo_name} Visualization Complete.\n")
+        return
 
-    # Print exploration order
-    print(f"\nVisited {len(visited_order)} cells in this order:")
-    for step, cell in enumerate(visited_order):
-        print(f"  Step {step}: {cell}")
+    current_visited = set()
 
-    # Print maze grid with markers
-    print(f"\nFinal state (. = empty, # = wall, * = visited, P = path, S = start, F = finish):")
-    for r in range(rows):
-        row_str = ""
-        for c in range(cols):
-            pos = (r, c)
-            if path and pos == path[0]:
-                row_str += "S "
-            elif path and pos == path[-1]:
-                row_str += "F "
-            elif pos in path_set:
-                row_str += "P "
-            elif pos in visited_set:
-                row_str += "* "
-            elif maze[r][c] == 1:
-                row_str += "# "
-            else:
-                row_str += ". "
-        print(f"  {row_str}")
+    print(f"\nStarting {algo_name} visualization in 2 seconds...")
+    time.sleep(2)
+
+    for step, current in enumerate(visited_order):
+        current_visited.add(current)
+
+        # using cls for cleaning the console
+        os.system("cls" if os.name == "nt" else "clear")
+        print(f"--- Algorithm: {algo_name} | Step: {step + 1} ---")
+
+        for r in range(rows):
+            row_str = ""
+            for c in range(cols):
+                # check the current coordinates to print the correct symbol
+                if (r, c) == start:
+                    row_str += " S "
+                elif (r, c) == finish:
+                    row_str += " E "
+                elif (r, c) == current:
+                    row_str += " @ "  # head of the search
+                elif (r, c) in current_visited:
+                    row_str += " . "  # previously visited cells
+                elif maze[r][c] == 1:
+                    row_str += "###"
+                else:
+                    row_str += "   "  # unvisited space
+            print(row_str)
+        time.sleep(0.5)
 
     if path:
-        print(f"\nPath ({len(path) - 1} steps): {' -> '.join(str(p) for p in path)}")
-    else:
-        print("\nNo path found!")
+        os.system("cls" if os.name == "nt" else "clear")
+        print(f"--- Algorithm: {algo_name} | FINAL PATH ---")
+        for r in range(rows):
+            row_str = ""
+            for c in range(cols):
+                if (r, c) == start:
+                    row_str += " S "
+                elif (r, c) == finish:
+                    row_str += " E "
+                elif (r, c) in path:
+                    row_str += " * "
+                elif maze[r][c] == 1:
+                    row_str += "###"
+                else:
+                    row_str += "   "
+            print(row_str)
+        time.sleep(3)
+    print(f"{algo_name} Visualization Complete.\n")
 
 
-def run_test(name, maze, start, finish):
-    """Helper to run and display a test case."""
-    print(f"\n{'#'*50}")
-    print(f" TEST: {name}")
-    print(f"{'#'*50}")
+def run_example():
+    maze = [
+        [0, 1, 0, 0, 0],
+        [0, 1, 0, 1, 0],
+        [0, 0, 0, 1, 0],
+        [1, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0],
+    ]
 
-    num_steps_bfs, viz_bfs = bfs(maze, start, finish)
-    num_steps_dfs, viz_dfs = dfs(maze, start, finish)
+    start_position = (0, 0)
+    finish_position = (4, 0)
+
+    num_steps_bfs, viz_bfs = bfs(maze, start_position, finish_position)
+    num_steps_dfs, viz_dfs = dfs(maze, start_position, finish_position)
 
     if num_steps_bfs != -1:
-        print(f"BFS: path from {start} to {finish} is {num_steps_bfs} steps.")
+        print(
+            f"Path from {start_position} to {finish_position} using bfs is {num_steps_bfs} steps."
+        )
     else:
-        print(f"BFS: no path from {start} to {finish}.")
+        print(f"No path from {start_position} to {finish_position} exists using bfs.")
 
     if num_steps_dfs != -1:
-        print(f"DFS: path from {start} to {finish} is {num_steps_dfs} steps.")
+        print(
+            f"Path from {start_position} to {finish_position} using dfs is {num_steps_dfs} steps."
+        )
     else:
-        print(f"DFS: no path from {start} to {finish}.")
+        print(f"No path from {start_position} to {finish_position} exists using dfs.")
 
+    # Vizualize algorithm step-by-step even if the path was not found
     vizualize(viz_bfs)
     vizualize(viz_dfs)
 
 
-# Test 1: Normal case (from template)
-maze1 = [
-    [0, 1, 0, 0, 0],
-    [0, 1, 0, 1, 0],
-    [0, 0, 0, 1, 0],
-    [1, 0, 1, 0, 0],
-    [0, 0, 0, 1, 0]
-]
-run_test("Normal maze", maze1, (0, 0), (4, 4))
+def run_custom_tests(show_visualization=False):
+    test_cases = {
+        "Complex maze": {
+            "maze": [
+                [0, 0, 1, 0, 0, 0, 0],
+                [0, 1, 1, 0, 1, 1, 0],
+                [0, 0, 0, 0, 0, 1, 0],
+                [1, 1, 1, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 1],
+                [0, 1, 1, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0, 1, 0],
+            ],
+            "start": (0, 0),
+            "finish": (1, 3),
+        },
+        "Open Space": {
+            "maze": [
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+            ],
+            "start": (0, 0),
+            "finish": (3, 4),
+        },
+        "No Path Available (Trapped)": {
+            "maze": [
+                [0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0],
+                [1, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0],
+            ],
+            "start": (0, 0),
+            "finish": (3, 4),
+        },
+        "Start and End are the same": {
+            "maze": [[0, 0, 0], [0, 1, 0], [0, 0, 0]],
+            "start": (0, 0),
+            "finish": (0, 0),
+        },
+        "Start inside a wall": {
+            "maze": [[1, 0, 0], [0, 1, 0], [0, 0, 0]],
+            "start": (0, 0),
+            "finish": (2, 2),
+        },
+        "Finish inside a wall": {
+            "maze": [[0, 0, 0], [0, 1, 0], [0, 0, 1]],
+            "start": (0, 0),
+            "finish": (2, 2),
+        },
+        "1x1 Open Maze": {
+            "maze": [[0]],
+            "start": (0, 0),
+            "finish": (0, 0),
+        },
+        "1x1 Blocked Maze": {
+            "maze": [[1]],
+            "start": (0, 0),
+            "finish": (0, 0),
+        },
+        "Disconnected Maze": {
+            "maze": [[0, 1, 1], [1, 1, 1], [1, 1, 0]],
+            "start": (0, 0),
+            "finish": (2, 2),
+        },
+        "BFS Shorter Than DFS": {
+            "maze": [
+                [0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0],
+                [0, 0, 1, 1, 0],
+                [0, 0, 0, 0, 0],
+            ],
+            "start": (0, 0),
+            "finish": (3, 4),
+        },
+        "Empty Maze": {
+            "maze": [],
+            "start": (0, 0),
+            "finish": (0, 0),
+        },
+        "Non-Rectangular Maze": {
+            "maze": [[0, 0, 0], [0, 1], [0, 0, 0]],
+            "start": (0, 0),
+            "finish": (2, 2),
+        },
+        "Out-of-Bounds Start": {
+            "maze": [[0, 0], [0, 0]],
+            "start": (2, 0),
+            "finish": (1, 1),
+        },
+        "Negative Coordinate": {
+            "maze": [[0, 0], [0, 0]],
+            "start": (-1, 0),
+            "finish": (1, 1),
+        },
+    }
 
-# Test 2: No path exists
-maze2 = [
-    [0, 1, 0],
-    [1, 1, 0],
-    [0, 0, 0]
-]
-run_test("No path (blocked start)", maze2, (0, 0), (2, 2))
+    for name, data in test_cases.items():
+        print(f"\n=== TEST: {name} ===")
+        b_steps, b_viz = bfs(data["maze"], data["start"], data["finish"])
+        d_steps, d_viz = dfs(data["maze"], data["start"], data["finish"])
+        print(f"BFS Steps: {b_steps} (Visited {len(b_viz['visited_order'])} cells)")
+        print(f"DFS Steps: {d_steps} (Visited {len(d_viz['visited_order'])} cells)")
 
-# Test 3: Start equals finish
-maze3 = [
-    [0, 0],
-    [0, 0]
-]
-run_test("Start == Finish", maze3, (0, 0), (0, 0))
+        if name == "BFS Shorter Than DFS":
+            print(
+                f"Comparison result for current direction order: BFS = {b_steps}, DFS = {d_steps}"
+            )
+            if b_steps != -1 and d_steps != -1 and d_steps > b_steps:
+                print("This test shows BFS finding a shorter path than DFS.")
+            else:
+                print(
+                    "This maze does not show DFS taking a longer path with the current direction order."
+                )
 
-# Test 4: 1x1 maze
-maze4 = [[0]]
-run_test("1x1 maze", maze4, (0, 0), (0, 0))
+        if show_visualization:
+            vizualize(b_viz)
+            vizualize(d_viz)
 
-# Test 5: Larger complex maze
-maze5 = [
-    [0, 0, 1, 0, 0, 0, 0],
-    [0, 1, 1, 0, 1, 1, 0],
-    [0, 0, 0, 0, 0, 1, 0],
-    [1, 1, 1, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 1],
-    [0, 1, 1, 1, 0, 0, 0],
-    [0, 0, 0, 1, 0, 1, 0]
-]
-run_test("Complex maze", maze5, (0, 0), (6, 6))
+
+if __name__ == "__main__":
+    run_example()
+    run_custom_tests()
