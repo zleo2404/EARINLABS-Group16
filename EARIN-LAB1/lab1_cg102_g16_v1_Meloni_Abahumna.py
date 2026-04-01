@@ -50,6 +50,9 @@ def validate_maze_input(maze, start, finish):
     if any(len(row) != cols for row in maze):
         return False, 0, 0
 
+    if any(cell not in (0, 1) for row in maze for cell in row):
+        return False, 0, 0
+
     rows = len(maze)
     if not validate_position(start, rows, cols):
         return False, 0, 0
@@ -83,16 +86,13 @@ def bfs(maze, start, finish):
 
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
-    # the queue contains tuples of (current_position, current_steps)
-    queue = deque([(start, 0)])
+    queue = deque([start])
     visited = {start}
     visited_order = []
     parent = {start: None}
 
     while queue:
-        current, steps = (
-            queue.popleft()
-        )  # popleft so we can always get the element in the first position
+        current = queue.popleft()  # popleft so we can always get the element in the first position
         visited_order.append(current)
 
         if current == finish:
@@ -109,7 +109,7 @@ def bfs(maze, start, finish):
             if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0:
                 if (nr, nc) not in visited:
                     visited.add((nr, nc))
-                    queue.append(((nr, nc), steps + 1))
+                    queue.append((nr, nc))
                     parent[(nr, nc)] = current
 
     return -1, build_viz(maze, start, finish, visited_order, [], "BFS")
@@ -138,15 +138,13 @@ def dfs(maze, start, finish):
 
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
-    stack = [(start, 0)]
+    stack = [start]
     visited = {start}
     visited_order = []
     parent = {start: None}
 
     while stack:
-        current, steps = (
-            stack.pop()
-        )  # pop because we need to explore all the newest nodes first.
+        current = stack.pop()  # pop because we need to explore all the newest nodes first.
         visited_order.append(current)
 
         if current == finish:
@@ -162,7 +160,7 @@ def dfs(maze, start, finish):
             if 0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0:
                 if (nr, nc) not in visited:
                     visited.add((nr, nc))
-                    stack.append(((nr, nc), steps + 1))
+                    stack.append((nr, nc))
                     parent[(nr, nc)] = current
 
     return -1, build_viz(maze, start, finish, visited_order, [], "DFS")
@@ -379,7 +377,7 @@ def run_custom_tests(show_visualization=False):
         print(f"BFS Steps: {b_steps} (Visited {len(b_viz['visited_order'])} cells)")
         print(f"DFS Steps: {d_steps} (Visited {len(d_viz['visited_order'])} cells)")
 
-        if name == "BFS Shorter Than DFS":
+        if name == "Comparison Maze":
             print(
                 f"Comparison result for current direction order: BFS = {b_steps}, DFS = {d_steps}"
             )
