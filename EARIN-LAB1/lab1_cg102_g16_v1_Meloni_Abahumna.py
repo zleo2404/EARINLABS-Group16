@@ -13,6 +13,8 @@ def build_viz(maze, start, finish, visited_order, path, name):
         "name": name,
     }
 
+
+# Helper
 def get_path(parent, finish):
     path = []
     node = finish
@@ -333,6 +335,21 @@ def run_custom_tests(show_visualization=False):
             "start": (0, 0),
             "finish": (0, 0),
         },
+        "Disconnected Maze": {
+            "maze": [[0, 1, 1], [1, 1, 1], [1, 1, 0]],
+            "start": (0, 0),
+            "finish": (2, 2),
+        },
+        "Comparison Maze": {
+            "maze": [
+                [0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0],
+                [0, 0, 1, 1, 0],
+                [0, 0, 0, 0, 0],
+            ],
+            "start": (0, 0),
+            "finish": (3, 4),
+        },
         "Empty Maze": {
             "maze": [],
             "start": (0, 0),
@@ -361,6 +378,17 @@ def run_custom_tests(show_visualization=False):
         d_steps, d_viz = dfs(data["maze"], data["start"], data["finish"])
         print(f"BFS Steps: {b_steps} (Visited {len(b_viz['visited_order'])} cells)")
         print(f"DFS Steps: {d_steps} (Visited {len(d_viz['visited_order'])} cells)")
+
+        if name == "BFS Shorter Than DFS":
+            print(
+                f"Comparison result for current direction order: BFS = {b_steps}, DFS = {d_steps}"
+            )
+            if b_steps != -1 and d_steps != -1 and d_steps > b_steps:
+                print("This test shows BFS finding a shorter path than DFS.")
+            else:
+                print(
+                    "This maze does not show DFS taking a longer path with the current direction order."
+                )
 
         if show_visualization:
             vizualize(b_viz)
