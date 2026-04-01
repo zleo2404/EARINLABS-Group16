@@ -14,7 +14,6 @@ def build_viz(maze, start, finish, visited_order, path, name):
     }
 
 
-# Helper
 def get_path(parent, finish):
     path = []
     node = finish
