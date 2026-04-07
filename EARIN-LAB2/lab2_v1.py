@@ -5,12 +5,17 @@ PLAYER_O = 'O'
 
 class TicTacToe:
     def __init__(self):
-        self.board = [[' ' for _ in range(3)] for _ in range(3)]
+        self.board = [[EMPTY for _ in range(3)] for _ in range(3)]
+        self.user = None
+        self.computer = None
 
     def print_board(self):
-        for row in self.board:
-            print("|".join(row))
-            print("-" * 5)
+        print()
+        for i, row in enumerate(self.board):
+            print(" | ".join(row))
+            if i < 2:
+                print("-" * 9)
+        print()
             
     def check_winner(self, board, player):
         """Checks if the specified player has won the game."""
@@ -43,114 +48,88 @@ class TicTacToe:
         
     def is_board_full(self, board):
         """Checks if there are no empty spaces left on the board."""
-        for row in board:
-            if ' ' in row:
-                return False
-        return True
+        return all(cell != EMPTY for row in board for cell in row)
     
     def get_available_moves(self, board):
         """Returns a list of tuples (row, col) for all empty cells."""
-        moves = []
-        for r in range(3):
-            for c in range(3):
-                if board[r][c] == ' ':
-                    moves.append((r, c))
-        return moves
+        return [(r, c) for r in range(3) for c in range(3) if board[r][c] == EMPTY]
 
     def minimax(self, board, depth, maximizing_player, alpha, beta):
-        """
-        Minimax with alpha-beta pruning algorithm
-        """
+        """Minimax with alpha-beta pruning algorithm"""
         score = self.evaluate(board)
         
-        # Se qualcuno ha vinto
+        #terminal state
         if score == 10 or score == -10:
             return score
-            
-        # Se non ci sono mosse disponibili (pareggio)
-        if self.is_board_full(board):
+        if self.is_board_full(board) or depth == 0:
             return 0
-            
-        # Se abbiamo raggiunto il limite di profondità
-        if depth == 0:
-            return score
         
-        # Turno del Computer (Maximizing player)
+        #computer turn - maximizing player
         if maximizing_player:
-            value = float('-inf')
-            for move in self.get_available_moves(board):
-                row, col = move
-                board[row][col] = self.computer
+            max_eval = float('-inf')
+            for r, c in self.get_available_moves(board):
+                board[r][c] = self.computer
                 
-                eval = self.minimax(board, depth - 1, False, alpha, beta)
-    
-                board[row][col] = ' '
+                evaluation = self.minimax(board, depth - 1, False, alpha, beta)
+                board[r][c] = EMPTY
                 
-                value = max(value, eval)
-                alpha = max(alpha, value)
+                max_eval = max(max_eval, evaluation)
+                alpha = max(alpha, evaluation)
                 
                 if beta <= alpha:
                     break 
-            return value
+            return max_eval
             
-        # Turno dell'Utente (Minimizing player)
+        #user turn - minimizing player
         else:
-            value = float('inf')
-            for move in self.get_available_moves(board):
-                row, col = move
-                board[row][col] = self.user
+            min_eval = float('inf')
+            for r, c in self.get_available_moves(board):
+                board[r][c] = self.user
                 
-                eval = self.minimax(board, depth - 1, True, alpha, beta)
-    
-                board[row][col] = ' '
+                evaluation = self.minimax(board, depth - 1, True, alpha, beta)
+                board[r][c] = EMPTY
                 
-                value = min(value, eval)
-                beta = min(beta, value)
+                min_eval = min(min_eval, evaluation)
+                beta = min(beta, evaluation)
                 
                 if beta <= alpha:
                     break 
-            return value
+            return min_eval
 
     def best_move(self):
-        """
-        Identifying best move for the computer
-        """
+        """Identifying best move for the computer"""
         best_score = float('-inf')
         move_coords = None
         
-        depth = len(self.get_available_moves(self.board))
+        available_moves = self.get_available_moves(self.board)
+        depth = len(available_moves)
 
-        for move in self.get_available_moves(self.board):
-            row, col = move
-            self.board[row][col] = self.computer
-            
+        for r, c in available_moves:
+            self.board[r][c] = self.computer
             score = self.minimax(self.board, depth, False, float('-inf'), float('inf'))
-            
-            self.board[row][col] = ' '
+            self.board[r][c] = EMPTY
             
             if score > best_score:
                 best_score = score
-                move_coords = (row, col)
+                move_coords = (r, c)
                 
         return move_coords
 
     def play_tic_tac_toe(self):
-        """
-        Main game loop implementation. Player1 plays with 'X', player2 plays second with 'O'
-        """
+        """Main game loop implementation. Player1 plays with 'X', player2 plays second with 'O'"""
         print("Welcome to Tic-Tac-Toe!")
         print("Coordinates are 0, 1, or 2 for both rows and columns.")
 
         while True:
             choice = input("Do you want to play first (1) or second (2)? Enter 1 or 2: ").strip()
             if choice == '1':
-                self.user = 'X'
-                self.computer = 'O'
+                self.user = PLAYER_X
+                self.computer = PLAYER_O
                 current_turn = 'user'
                 break
             elif choice == '2':
-                self.user = 'O'
-                self.computer = 'X'
+                self.user = PLAYER_O
+                self.computer = PLAYER_X
                 current_turn = 'computer'
                 break
             else:
@@ -159,7 +138,10 @@ class TicTacToe:
         print(f"\nYou are playing as {self.user}. The computer is {self.computer}.")
         self.print_board()
 
+        #main loop
         while True:
+            
+            #if someone won
             if self.check_winner(self.board, self.user):
                 print("Congratulations! You won!") 
                 break
@@ -170,6 +152,7 @@ class TicTacToe:
                 print("It's a draw!")
                 break
 
+            #turn managment
             if current_turn == 'user':
                 print("Your turn!")
                 while True:
@@ -179,7 +162,7 @@ class TicTacToe:
                         
                         if r not in [0, 1, 2] or c not in [0, 1, 2]:
                             print("Coordinates must be 0, 1, or 2. Try again.")
-                        elif self.board[r][c] != ' ':
+                        elif self.board[r][c] != EMPTY:
                             print("That cell is already occupied. Try again.")
                         else:
                             self.board[r][c] = self.user
@@ -197,6 +180,7 @@ class TicTacToe:
                     self.board[move[0]][move[1]] = self.computer
                 self.print_board()
                 current_turn = 'user'
+
 
 if __name__ == "__main__":
     game = TicTacToe()      
