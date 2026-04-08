@@ -97,15 +97,20 @@ class TicTacToe:
         
         available_moves = self.get_available_moves(self.board)
         depth = len(available_moves)
+        
+        alpha = float('-inf')
+        beta = float('inf')
 
         for r, c in available_moves:
             self.board[r][c] = self.computer
-            score = self.minimax(self.board, depth-1, False, float('-inf'), float('inf'))
+            score = self.minimax(self.board, depth-1, False, alpha, beta)
             self.board[r][c] = EMPTY
             
             if score > best_score:
                 best_score = score
                 move_coords = (r, c)
+                
+            alpha = max(alpha, best_score)
                 
         return move_coords
 
