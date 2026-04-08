@@ -116,6 +116,7 @@ class TicTacToe:
 
     def play_tic_tac_toe(self):
         """Main game loop implementation. Player1 plays with 'X', player2 plays second with 'O'"""
+        self.board = [[EMPTY for _ in range(3)] for _ in range(3)]
         print("Welcome to Tic-Tac-Toe!")
         print("Coordinates are 0, 1, or 2 for both rows and columns.")
 
