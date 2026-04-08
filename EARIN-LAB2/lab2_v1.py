@@ -10,12 +10,12 @@ class TicTacToe:
         self.computer = None
 
     def print_board(self):
-        print()
-        for i, row in enumerate(self.board):
-            print(" | ".join(row))
-            if i < 2:
-                print("-" * 9)
-        print()
+        print("  0   1   2")
+        for index, row in enumerate(self.board):
+            print(index, " | ".join(row))
+            if index < 2:
+                print("  -----------")
+
             
     def check_winner(self, board, player):
         """Checks if the specified player has won the game."""
@@ -34,15 +34,11 @@ class TicTacToe:
             
         return False
         
-    def evaluate(self, board):
-        """
-        Evaluation function for the board.
-        Returns +10 if the computer wins, -10 if the user wins, and 0 for a draw.
-        """
+    def evaluate(self, board, depth):
         if self.check_winner(board, self.computer):
-            return 10
+            return 10 + depth
         elif self.check_winner(board, self.user):
-            return -10
+            return -10 - depth
         else:
             return 0
         
@@ -56,15 +52,14 @@ class TicTacToe:
 
     def minimax(self, board, depth, maximizing_player, alpha, beta):
         """Minimax with alpha-beta pruning algorithm"""
-        score = self.evaluate(board)
+        score = self.evaluate(board,depth)
         
         #terminal state
-        if score == 10 or score == -10:
+        if score > 0 or score < 0:
             return score
         if self.is_board_full(board) or depth == 0:
             return 0
         
-        #computer turn - maximizing player
         if maximizing_player:
             max_eval = float('-inf')
             for r, c in self.get_available_moves(board):
@@ -80,7 +75,6 @@ class TicTacToe:
                     break 
             return max_eval
             
-        #user turn - minimizing player
         else:
             min_eval = float('inf')
             for r, c in self.get_available_moves(board):
@@ -106,7 +100,7 @@ class TicTacToe:
 
         for r, c in available_moves:
             self.board[r][c] = self.computer
-            score = self.minimax(self.board, depth, False, float('-inf'), float('inf'))
+            score = self.minimax(self.board, depth-1, False, float('-inf'), float('inf'))
             self.board[r][c] = EMPTY
             
             if score > best_score:
