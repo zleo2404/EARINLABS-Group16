@@ -117,7 +117,7 @@ class GeneticAlgorithm:
         
         return next_generation[:self.population_size]
 
-    def plot_func(self, trace):
+    def plot_func(self, trace, title_suffix):
         
         x = np.linspace(self.aoi[0], self.aoi[1], 100)
         y = np.linspace(self.aoi[0], self.aoi[1], 100)
@@ -145,7 +145,8 @@ class GeneticAlgorithm:
         plt.title('Objective Function Contour and Best Individual Trace')
         plt.xlabel('x1')
         plt.ylabel('x2')
-        plt.savefig(f"plot_trace.png") # Nota: è utile modificare il metodo plot_func per accettare il title_suffix e usarlo nel nome file!
+        filename = f"plot_{title_suffix.replace(' ', '_').replace('=', '')}.png"
+        plt.savefig(filename)
         plt.close()
 
     def run(self, show_plot=False, title_suffix=""):
@@ -171,37 +172,59 @@ class GeneticAlgorithm:
         
         if show_plot:
             plt.title(f'Objective Function Contour - {title_suffix}')
-            self.plot_func(trace)
+            self.plot_func(trace,title_suffix)
             
         return trace
 
 
 if __name__ == "__main__":
-    print("--- Testing ---")
     
-    mutations_to_test = [0.01, 0.05, 0.20]
-    num_runs = 5 #test each config 5 times
+    print("--- Parameter Study ---")
     
-    for m in mutations_to_test:
-        print(f"\nTest : mutation = {m*100}%")
-        final_fitnesses = []
+    base_params = {
+        "chromosome_length": 32,
+        "obj_func_num_args": 2,
+        "objective_function": objective_function,
+        "aoi": [-5, 5],
+        "population_size": 100,
+        "tournament_size": 3,
+        "mutation_probability": 0.05,
+        "crossover_probability": 0.8,
+        "num_steps": 50
+    }
+
+    experiments = {
+        "mutation_probability": [0.01, 0.05, 0.20],
+        "tournament_size": [2, 5, 10],
+        "population_size": [20, 100, 200],
+        "crossover_probability": [0.4, 0.8, 1.0]
+    }
+    
+    num_runs = 5
+    
+    for param_name, values_to_test in experiments.items():
+        print(f"----------- TESTING PARAMETER: {param_name} ------------")
         
-        for r in range(num_runs):
-            ga = GeneticAlgorithm(
-                chromosome_length=32, obj_func_num_args=2, objective_function=objective_function,
-                aoi=[-5, 5], population_size=100, tournament_size=3,
-                mutation_probability=m, crossover_probability=0.8, num_steps=50
-            )
+        for val in values_to_test:
+            final_fitnesses = []
             
-            #plot only for the first run of each configuration
-            show = True if r == 0 else False
-            trace = ga.run(show_plot=show, title_suffix=f"Mutation {m*100}%")
+            for r in range(num_runs):
+                current_params = base_params.copy()
+                current_params[param_name] = val
+                
+                ga = GeneticAlgorithm(**current_params)
+                
+                show = True if r == 0 else False
+                plot_title = f"{param_name} = {val}"
+                
+                trace = ga.run(show_plot=show, title_suffix=plot_title)
+                
+                final_best_fitness = trace[-1][1] 
+                final_fitnesses.append(final_best_fitness)
+                
+            avg = np.mean(final_fitnesses)
+            dev_std = np.std(final_fitnesses)
             
-            #retrieve the fitness of the best individual in the last generation
-            final_best_fitness = trace[-1][1] 
-            final_fitnesses.append(final_best_fitness)
-            
-        avg = np.mean(final_fitnesses)
-        dev_std = np.std(final_fitnesses)
-        
-        print(f"Result mutation {m*100}% -> Avg Min: {avg:.5f} | Dev. Standard: {dev_std:.5f}")
+            print(f"Value: {val} -> Avg Min: {avg:.5f} | Std Dev: {dev_std:.5f}")
+
+    print("\n--- Parameter Study Completed! ---")
