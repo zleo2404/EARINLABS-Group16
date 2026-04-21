@@ -11,7 +11,7 @@ class Chromosome:
         self.length = length
         
         if array is None:
-            self.array = np.random.randint(0,2, size=length)
+            self.array = np.random.randint(0, 2, size=length)
         else:
             self.array = np.array(array)
 
@@ -25,8 +25,6 @@ class Chromosome:
         max_val = (2**k) - 1 
         
         return min_max_norm(decimal_value, 0, max_val, aoi[0], aoi[1])
-            
-        
 
     def mutation(self, probability):
         if np.random.rand() < probability:
@@ -34,10 +32,10 @@ class Chromosome:
             self.array[idx] = 1 - self.array[idx]
 
     def crossover(self, other):
-        cutidx = np.random.randint(0,self.length)
+        cutidx = np.random.randint(0, self.length)
         
         child1_array = np.concatenate((self.array[:cutidx], other.array[cutidx:]))
-        child2_array = np.concatenate((other.array[:cutidx],self.array[cutidx:]))
+        child2_array = np.concatenate((other.array[:cutidx], self.array[cutidx:]))
         
         return Chromosome(self.length, child1_array), Chromosome(self.length, child2_array)
 
@@ -48,7 +46,7 @@ def objective_function(*args):
     
     term1 = 1.5
     term2 = np.exp(-x1**2 - x2**2)
-    term3 = 0.5 * np.exp(-(x1 - 1)**2 - (x2+2)**2)
+    term3 = 0.5 * np.exp(-(x1 - 1)**2 - (x2 + 2)**2)
     
     return term1 - term2 - term3
 
@@ -77,20 +75,19 @@ class GeneticAlgorithm:
         for i in range(self.obj_func_num_args):
             
             lower_bound = i * self.bits_per_arg
-            upper_bound = (i+1) * self.bits_per_arg
+            upper_bound = (i + 1) * self.bits_per_arg
             
             decoded_val = chromosome.decode(lower_bound,upper_bound,self.aoi)
             
             args.append(decoded_val)
         
         return self.objective_function(*args)
-            
-
+    
     def tournament_selection(self):
         parents = []
         
         for _ in range(self.population_size):
-            #selfpopulation is the max value, tournament the numbers that i have to exctract and replace its without reinseriment
+            #extract random indices from the population without replacement
             candidates_idx = np.random.choice(self.population_size, self.tournament_size, replace=False)
             
             best_idx = candidates_idx[np.argmin([self.fitnesses[i] for i in candidates_idx])]
@@ -102,13 +99,13 @@ class GeneticAlgorithm:
     def reproduce(self, parents):
         next_generation = []
         
-        for i in range(0,len(parents),2):
+        for i in range(0, len(parents), 2):
             
             p1 = parents[i]
-            p2 = parents[i+1] if (i+1) < len(parents) else parents[0]
+            p2 = parents[i+1] if (i + 1) < len(parents) else parents[0]
             
-            if( np.random.rand() < self.crossover_probability):
-                c1,c2 = p1.crossover(p2)
+            if np.random.rand() < self.crossover_probability:
+                c1, c2 = p1.crossover(p2)
             else:
                 c1 = Chromosome(self.chromosome_length, p1.array.copy())
                 c2 = Chromosome(self.chromosome_length, p2.array.copy())
@@ -124,7 +121,7 @@ class GeneticAlgorithm:
         
         x = np.linspace(self.aoi[0], self.aoi[1], 100)
         y = np.linspace(self.aoi[0], self.aoi[1], 100)
-        #coordinates
+        #create coordinates grid
         X, Y = np.meshgrid(x, y)
         
         #calculate fitness for each point
@@ -133,30 +130,30 @@ class GeneticAlgorithm:
             for j in range(X.shape[1]):
                 Z[i, j] = self.objective_function(X[i, j], Y[i, j])
 
-        #topographic map, virdis use colours from violet to yellow
+        #topographic map, virdis colour map for colours from violet to yellow
         plt.figure(figsize=(10, 8))
         contour = plt.contourf(X, Y, Z, levels=50, cmap='viridis', alpha=0.8)
         plt.colorbar(contour, label='Objective Value')
 
-        #we extract only x1 and x2
+        #extract only x1 and x2 coordinates
         points = np.array([t[0] for t in trace])
 
-        #1 is dark red and 0.2 is light red, the path of the algorithm
-        colors = np.linspace(1, 0.2, len(points)) # 1 è scuro, 0.2 è chiaro
+        colors = np.linspace(1, 0.2, len(points))
         
         plt.scatter(points[:, 0], points[:, 1], c=colors, cmap='Reds', edgecolors='black', s=50, zorder=5)
 
         plt.title('Objective Function Contour and Best Individual Trace')
         plt.xlabel('x1')
         plt.ylabel('x2')
-        plt.show()
+        plt.savefig(f"plot_trace.png") # Nota: è utile modificare il metodo plot_func per accettare il title_suffix e usarlo nel nome file!
+        plt.close()
 
-    def run(self):
+    def run(self, show_plot=False, title_suffix=""):
         self.population = [Chromosome(self.chromosome_length) for _ in range(self.population_size)]
 
         trace = []
         
-        #how many new generations i want
+        #loop for designated number of generations
         for step in range(self.num_steps):
             self.fitnesses = [self.eval_objective_func(c) for c in self.population]
             
@@ -171,23 +168,40 @@ class GeneticAlgorithm:
             parents = self.tournament_selection()
                 
             self.population = self.reproduce(parents)
-        self.plot_func(trace)
+        
+        if show_plot:
+            plt.title(f'Objective Function Contour - {title_suffix}')
+            self.plot_func(trace)
+            
         return trace
 
 
 if __name__ == "__main__":
-    ga = GeneticAlgorithm(
-        chromosome_length=32,
-        obj_func_num_args=2,
-        objective_function=objective_function,
-        aoi=[-5, 5],
-        population_size=100,
-        tournament_size=3,
-        mutation_probability=0.05,
-        crossover_probability=0.8,
-        num_steps=50               
-    )
+    print("--- Testing ---")
     
-    print("Avvio dell'Algoritmo Genetico in corso...")
-    final_trace = ga.run()
-    print("Esecuzione terminata. Chiudi il grafico per concludere il programma.")
+    mutations_to_test = [0.01, 0.05, 0.20]
+    num_runs = 5 #test each config 5 times
+    
+    for m in mutations_to_test:
+        print(f"\nTest : mutation = {m*100}%")
+        final_fitnesses = []
+        
+        for r in range(num_runs):
+            ga = GeneticAlgorithm(
+                chromosome_length=32, obj_func_num_args=2, objective_function=objective_function,
+                aoi=[-5, 5], population_size=100, tournament_size=3,
+                mutation_probability=m, crossover_probability=0.8, num_steps=50
+            )
+            
+            #plot only for the first run of each configuration
+            show = True if r == 0 else False
+            trace = ga.run(show_plot=show, title_suffix=f"Mutation {m*100}%")
+            
+            #retrieve the fitness of the best individual in the last generation
+            final_best_fitness = trace[-1][1] 
+            final_fitnesses.append(final_best_fitness)
+            
+        avg = np.mean(final_fitnesses)
+        dev_std = np.std(final_fitnesses)
+        
+        print(f"Result mutation {m*100}% -> Avg Min: {avg:.5f} | Dev. Standard: {dev_std:.5f}")
