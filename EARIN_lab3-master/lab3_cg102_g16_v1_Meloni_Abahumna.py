@@ -87,13 +87,14 @@ class GeneticAlgorithm:
         parents = []
         
         for _ in range(self.population_size):
-            #extract random indices from the population without replacement
+            #Extract random indices(tournament size) from the population without replacement(always different)
             candidates_idx = np.random.choice(self.population_size, self.tournament_size, replace=False)
             
+            #Extract the candidate that minimize the function
             best_idx = candidates_idx[np.argmin([self.fitnesses[i] for i in candidates_idx])]
             
             parents.append(self.population[best_idx])
-            
+        #Return the new parents
         return parents
 
     def reproduce(self, parents):
@@ -104,12 +105,14 @@ class GeneticAlgorithm:
             p1 = parents[i]
             p2 = parents[i+1] if (i + 1) < len(parents) else parents[0]
             
+            #If the random probability happens we realize the crossover, otherwise we keep the previous ones
             if np.random.rand() < self.crossover_probability:
                 c1, c2 = p1.crossover(p2)
             else:
                 c1 = Chromosome(self.chromosome_length, p1.array.copy())
                 c2 = Chromosome(self.chromosome_length, p2.array.copy())
                 
+            #Apply mutation
             c1.mutation(self.mutation_probability)
             c2.mutation(self.mutation_probability)
             
@@ -152,21 +155,25 @@ class GeneticAlgorithm:
         plt.close()
 
     def run(self, show_plot=False, title_suffix=""):
+        #Generate the new start population
         self.population = [Chromosome(self.chromosome_length) for _ in range(self.population_size)]
 
         trace = []
         
-        #loop for designated number of generations
+        #Loop for designated number of generations
         for step in range(self.num_steps):
             self.fitnesses = [self.eval_objective_func(c) for c in self.population]
             
+            #Search for the best chromosome
             best_idx = np.argmin(self.fitnesses)
             best_chrom = self.population[best_idx]
             
             best_args = []
+            #For each segment
             for i in range(self.obj_func_num_args):
-                best_args.append(best_chrom.decode(i * self.bits_per_arg, (i+1) * self.bits_per_arg, self.aoi))
+                best_args.append(best_chrom.decode(i * self.bits_per_arg, (i + 1) * self.bits_per_arg, self.aoi))
                 
+            #Save info and do the selection and reproduce
             trace.append((best_args, self.fitnesses[best_idx]))
             parents = self.tournament_selection()
                 
