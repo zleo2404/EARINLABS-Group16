@@ -146,6 +146,8 @@ class GeneticAlgorithm:
         plt.xlabel('x1')
         plt.ylabel('x2')
         filename = f"plot_{title_suffix.replace(' ', '_').replace('=', '')}.png"
+        plt.xlim(-1.5, 1.5)
+        plt.ylim(-2.5, 1.0)
         plt.savefig(filename)
         plt.close()
 
