@@ -1,4 +1,7 @@
-"""Lab 4: California Housing feature analysis."""
+"""Lab 4: California Housing price prediction.
+
+Run this file to create datasets, train models, and save result files.
+"""
 
 import os
 from pathlib import Path
@@ -13,27 +16,29 @@ except ImportError:
 if certifi is not None:
     os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 
+import joblib
 import matplotlib
+from joblib import parallel_backend
 
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import joblib
 from sklearn.datasets import fetch_california_housing
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Ridge
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-
 
 RANDOM_STATE = 42
 TARGET_COLUMN = "MedHouseVal"
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_1_DIR = BASE_DIR / "Models" / "Model 1"
+MODEL_2_DIR = BASE_DIR / "Models" / "Model 2"
 TRAIN_DIR = BASE_DIR / "Dataset" / "Train"
 TEST_DIR = BASE_DIR / "Dataset" / "Test"
 SKLEARN_DATA_DIR = BASE_DIR / "Dataset" / "sklearn_data"
@@ -41,9 +46,9 @@ RESULTS_DIR = BASE_DIR / "Results"
 
 
 def create_directories():
-    """Create output directories."""
-    for directory in [MODEL_1_DIR, TRAIN_DIR, TEST_DIR, SKLEARN_DATA_DIR,
-                      RESULTS_DIR]:
+    """Create project output directories."""
+    for directory in [MODEL_1_DIR, MODEL_2_DIR, TRAIN_DIR, TEST_DIR,
+                      SKLEARN_DATA_DIR, RESULTS_DIR]:
         directory.mkdir(parents=True, exist_ok=True)
 
 
@@ -53,11 +58,13 @@ def load_dataset():
         data_home=SKLEARN_DATA_DIR,
         as_frame=True,
     )
-    return housing.frame.copy(), housing.feature_names
+    feature_names = housing.feature_names
+    df = housing.frame.copy()
+    return df, feature_names
 
 
 def analyze_features(df, feature_names):
-    """Save summary statistics, feature correlations, and heatmap."""
+    """Save feature summary statistics, correlations, and heatmap."""
     summary = df[feature_names + [TARGET_COLUMN]].describe()
     summary.to_csv(RESULTS_DIR / "feature_summary_statistics.csv")
 
@@ -80,7 +87,8 @@ def analyze_features(df, feature_names):
 
     fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
     fig.tight_layout()
-    fig.savefig(RESULTS_DIR / "feature_correlation_heatmap.png", dpi=150)
+    heatmap_path = RESULTS_DIR / "feature_correlation_heatmap.png"
+    fig.savefig(heatmap_path, dpi=150)
     plt.close(fig)
 
     retention_decision = (
@@ -91,6 +99,8 @@ def analyze_features(df, feature_names):
         retention_decision + "\n",
         encoding="utf-8",
     )
+
+    return summary, correlation_matrix, heatmap_path, retention_decision
 
 
 def save_train_test_data(df, feature_names):
@@ -129,8 +139,9 @@ def grid_results_to_table(grid_search):
     return table
 
 
-def train_ridge_model(x_train, y_train):
-    """Train Ridge Regression with scaling and 4-fold CV."""
+def tune_and_train_models(x_train, y_train):
+    """Tune both models with 4-fold CV using RMSE as the selection metric."""
+    print("Training Model 1: Ridge Regression grid search...", flush=True)
     ridge_pipeline = Pipeline([
         ("scaler", StandardScaler()),
         ("model", Ridge()),
@@ -142,26 +153,122 @@ def train_ridge_model(x_train, y_train):
         param_grid=ridge_grid,
         cv=4,
         scoring="neg_root_mean_squared_error",
-        n_jobs=1,
+        n_jobs=-1,
     )
-    ridge_search.fit(x_train, y_train)
+    with parallel_backend("threading"):
+        ridge_search.fit(x_train, y_train)
+    print("Model 1 complete.", flush=True)
+
+    print("Training Model 2: Random Forest grid search...", flush=True)
+    rf_model = RandomForestRegressor(random_state=RANDOM_STATE, n_jobs=1)
+    rf_grid = {
+        "n_estimators": [100, 200],
+        "max_depth": [None, 10, 20],
+        "min_samples_split": [2, 5],
+    }
+
+    rf_search = GridSearchCV(
+        estimator=rf_model,
+        param_grid=rf_grid,
+        cv=4,
+        scoring="neg_root_mean_squared_error",
+        n_jobs=-1,
+    )
+    with parallel_backend("threading"):
+        rf_search.fit(x_train, y_train)
+    print("Model 2 complete.", flush=True)
 
     joblib.dump(ridge_search.best_estimator_,
                 MODEL_1_DIR / "ridge_pipeline.joblib")
+    joblib.dump(rf_search.best_estimator_,
+                MODEL_2_DIR / "random_forest_model.joblib")
 
     ridge_results = grid_results_to_table(ridge_search)
+    rf_results = grid_results_to_table(rf_search)
     ridge_results.to_csv(MODEL_1_DIR / "ridge_grid_results.csv", index=False)
-    return ridge_search
+    rf_results.to_csv(MODEL_2_DIR / "random_forest_grid_results.csv",
+                      index=False)
+
+    return ridge_search, rf_search, ridge_results, rf_results
+
+
+def evaluate_model(model, x_test, y_test):
+    """Calculate standard regression metrics for a fitted model."""
+    predictions = model.predict(x_test)
+    return {
+        "MAE": mean_absolute_error(y_test, predictions),
+        "RMSE": root_mean_squared_error(y_test, predictions),
+        "R2": r2_score(y_test, predictions),
+    }
+
+
+def create_comparison_table(ridge_search, rf_search, x_test, y_test):
+    """Create and save final model comparison table."""
+    ridge_metrics = evaluate_model(ridge_search.best_estimator_, x_test, y_test)
+    rf_metrics = evaluate_model(rf_search.best_estimator_, x_test, y_test)
+
+    comparison = pd.DataFrame([
+        {
+            "Model": "Ridge Regression",
+            "Test MAE": ridge_metrics["MAE"],
+            "Test RMSE": ridge_metrics["RMSE"],
+            "Test R2": ridge_metrics["R2"],
+            "Best 4-fold CV RMSE": -ridge_search.best_score_,
+        },
+        {
+            "Model": "Random Forest",
+            "Test MAE": rf_metrics["MAE"],
+            "Test RMSE": rf_metrics["RMSE"],
+            "Test R2": rf_metrics["R2"],
+            "Best 4-fold CV RMSE": -rf_search.best_score_,
+        },
+    ])
+    comparison.to_csv(RESULTS_DIR / "final_model_comparison.csv", index=False)
+    return comparison
+
+
+def save_performance_plot(comparison):
+    """Save a simple bar chart comparing test RMSE."""
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.bar(comparison["Model"], comparison["Test RMSE"], color=["#4C78A8",
+                                                               "#F58518"])
+    ax.set_ylabel("Test RMSE")
+    ax.set_title("Final Test RMSE Comparison")
+    ax.grid(axis="y", alpha=0.3)
+    fig.tight_layout()
+    plot_path = RESULTS_DIR / "model_rmse_comparison.png"
+    fig.savefig(plot_path, dpi=150)
+    plt.close(fig)
+    return plot_path
 
 
 def main():
-    """Run feature analysis, split data, and train Ridge Regression."""
+    """Run the full project workflow."""
     create_directories()
+
     df, feature_names = load_dataset()
-    analyze_features(df, feature_names)
-    x_train, _, y_train, _ = save_train_test_data(df, feature_names)
-    train_ridge_model(x_train, y_train)
-    print("Ridge baseline trained and saved.")
+    analyze_features(
+        df,
+        feature_names,
+    )
+    x_train, x_test, y_train, y_test = save_train_test_data(df, feature_names)
+
+    ridge_search, rf_search, _, _ = tune_and_train_models(
+        x_train,
+        y_train,
+    )
+    comparison = create_comparison_table(
+        ridge_search,
+        rf_search,
+        x_test,
+        y_test,
+    )
+    save_performance_plot(comparison)
+
+    print("Lab 4 project completed successfully.")
+    print("Result files saved to the Results and Models folders.")
+    print("\nFinal model comparison:")
+    print(comparison.round(4).to_string(index=False))
 
 
 if __name__ == "__main__":
