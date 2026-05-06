@@ -146,8 +146,7 @@ class Network:
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         """Forward propagation of x through all layers"""
-        # Il forward pass della rete è come una corsa a staffetta.
-        # L'output del primo layer diventa l'input del secondo, e così via.
+        
         output = x
         for layer in self.layers:
             output = layer.forward(output)
@@ -160,12 +159,9 @@ class Network:
             learning_rate: float,
             verbose: int = 0) -> List[float]:
         
-        # Aggiorniamo il learning rate di tutti i layer (nel caso sia cambiato)
         for layer in self.layers:
             layer.learning_rate = learning_rate
 
-        # Questa lista ci servirà per il tuo report: salverà l'errore ad ogni epoca 
-        # così potrai plottare il grafico finale delle loss curve!
         history = [] 
 
         for epoch in range(epochs):
