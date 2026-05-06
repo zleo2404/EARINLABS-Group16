@@ -19,7 +19,7 @@ python3 -m pip install -r requirements.txt
 ## Run
 
 ```bash
-python3 main.py
+python3 lab4_cg102_g16_v1_meloni_abahumna.py
 ```
 
 The script loads the dataset, performs feature analysis, creates train/test
@@ -31,4 +31,4 @@ cross-validation, and saves the model results.
 The trained Random Forest model file is not included because it is large. It will be generated automatically when running:
 
 ```bash
-python3 main.py
+python3 lab4_cg102_g16_v1_meloni_abahumna.py
