@@ -1,0 +1,17 @@
+run_name,sweep,setting,episodes,alpha,gamma,epsilon_start,epsilon_min,epsilon_decay,bins,seed,final_rolling_reward,best_rolling_reward,solved_episode,evaluation_average,evaluation_std
+baseline,baseline,default,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,214.31,283.66,,197.3,38.57473266271589
+learning_rate_alpha_0p05,learning_rate,alpha = 0.05,5000,0.05,0.99,1.0,0.05,0.995,6x8x12x12,42,298.44,318.12,,398.95,79.58358813222736
+learning_rate_alpha_0p1,learning_rate,alpha = 0.1,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,214.31,283.66,,197.3,38.57473266271589
+learning_rate_alpha_0p2,learning_rate,alpha = 0.2,5000,0.2,0.99,1.0,0.05,0.995,6x8x12x12,42,228.19,320.3,,314.75,85.0305092305109
+discount_factor_gamma_0p95,discount_factor,gamma = 0.95,5000,0.1,0.95,1.0,0.05,0.995,6x8x12x12,42,183.8,204.36,,143.3,29.936766692480337
+discount_factor_gamma_0p99,discount_factor,gamma = 0.99,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,214.31,283.66,,197.3,38.57473266271589
+discount_factor_gamma_0p999,discount_factor,gamma = 0.999,5000,0.1,0.999,1.0,0.05,0.995,6x8x12x12,42,259.33,334.93,,476.4,72.54405558004048
+exploration_start_0p5,exploration_start,epsilon_start = 0.5,5000,0.1,0.99,0.5,0.05,0.995,6x8x12x12,42,214.84,227.73,,230.7,107.5923324405601
+exploration_start_0p8,exploration_start,epsilon_start = 0.8,5000,0.1,0.99,0.8,0.05,0.995,6x8x12x12,42,214.44,280.26,,210.2,92.83458407296281
+exploration_start_1p0,exploration_start,epsilon_start = 1.0,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,214.31,283.66,,197.3,38.57473266271589
+exploration_decay_0p99,exploration_decay,epsilon_decay = 0.99,5000,0.1,0.99,1.0,0.05,0.99,6x8x12x12,42,184.87,249.07,,159.55,89.53852522797101
+exploration_decay_0p995,exploration_decay,epsilon_decay = 0.995,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,214.31,283.66,,197.3,38.57473266271589
+exploration_decay_0p999,exploration_decay,epsilon_decay = 0.999,5000,0.1,0.99,1.0,0.05,0.999,6x8x12x12,42,311.67,376.51,,268.65,125.1719916754543
+quantization_bins_4x6x8x8,quantization,"bins = (4, 6, 8, 8)",5000,0.1,0.99,1.0,0.05,0.995,4x6x8x8,42,228.77,293.29,,297.95,56.136864002186655
+quantization_bins_6x8x12x12,quantization,"bins = (6, 8, 12, 12)",5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,214.31,283.66,,197.3,38.57473266271589
+quantization_bins_8x10x14x14,quantization,"bins = (8, 10, 14, 14)",5000,0.1,0.99,1.0,0.05,0.995,8x10x14x14,42,133.25,170.81,,143.45,41.59984975934408
