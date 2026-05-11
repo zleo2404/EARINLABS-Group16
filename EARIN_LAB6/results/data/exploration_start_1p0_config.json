@@ -1,0 +1,19 @@
+{
+  "episodes": 5000,
+  "alpha": 0.1,
+  "gamma": 0.99,
+  "epsilon_start": 1.0,
+  "epsilon_min": 0.05,
+  "epsilon_decay": 0.995,
+  "bins": [
+    6,
+    8,
+    12,
+    12
+  ],
+  "seed": 42,
+  "rolling_window": 100,
+  "solved_reward": 475.0,
+  "stop_when_solved": false,
+  "env_name": "CartPole-v1"
+}
