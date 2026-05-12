@@ -37,12 +37,12 @@ DEFAULT_BINS = (6, 8, 12, 12)
 
 @dataclass(frozen=True)
 class TrainingConfig:
-    episodes: int = 5000
+    episodes: int = 10000
     alpha: float = 0.1
     gamma: float = 0.99
     epsilon_start: float = 1.0
     epsilon_min: float = 0.05
-    epsilon_decay: float = 0.995
+    epsilon_decay: float = 0.9995
     bins: Tuple[int, int, int, int] = DEFAULT_BINS
     seed: int = 42
     rolling_window: int = 100
