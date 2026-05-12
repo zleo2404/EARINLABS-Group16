@@ -1,17 +1,18 @@
 run_name,sweep,setting,episodes,alpha,gamma,epsilon_start,epsilon_min,epsilon_decay,bins,seed,final_rolling_reward,best_rolling_reward,solved_episode,evaluation_average,evaluation_std
-baseline,baseline,default,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,143.55,168.32,,134.25,39.100991036033854
-learning_rate_alpha_0p05,learning_rate,alpha = 0.05,5000,0.05,0.99,1.0,0.05,0.995,6x8x12x12,42,109.08,109.08,,109.85,72.06335754043104
-learning_rate_alpha_0p1,learning_rate,alpha = 0.1,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,143.55,168.32,,134.25,39.100991036033854
-learning_rate_alpha_0p2,learning_rate,alpha = 0.2,5000,0.2,0.99,1.0,0.05,0.995,6x8x12x12,42,213.64,245.97,,170.45,27.15414333025441
-discount_factor_gamma_0p95,discount_factor,gamma = 0.95,5000,0.1,0.95,1.0,0.05,0.995,6x8x12x12,42,136.33,184.26,,156.1,45.154069584036385
-discount_factor_gamma_0p99,discount_factor,gamma = 0.99,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,143.55,168.32,,134.25,39.100991036033854
-discount_factor_gamma_0p999,discount_factor,gamma = 0.999,5000,0.1,0.999,1.0,0.05,0.995,6x8x12x12,42,121.09,130.53,,136.65,37.87383661579587
-exploration_start_0p5,exploration_start,epsilon_start = 0.5,5000,0.1,0.99,0.5,0.05,0.995,6x8x12x12,42,127.59,158.38,,145.7,52.17863547468446
-exploration_start_0p8,exploration_start,epsilon_start = 0.8,5000,0.1,0.99,0.8,0.05,0.995,6x8x12x12,42,206.63,256.42,,121.5,52.749881516454614
-exploration_start_1p0,exploration_start,epsilon_start = 1.0,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,143.55,168.32,,134.25,39.100991036033854
+baseline,baseline,default,5000,0.1,0.99,1.0,0.05,0.999,6x8x12x12,42,205.71,243.71,,251.9,92.60448153302302
+learning_rate_alpha_0p05,learning_rate,alpha = 0.05,5000,0.05,0.99,1.0,0.05,0.999,6x8x12x12,42,121.98,145.43,,138.9,69.38148167919161
+learning_rate_alpha_0p1,learning_rate,alpha = 0.1,5000,0.1,0.99,1.0,0.05,0.999,6x8x12x12,42,205.71,243.71,,251.9,92.60448153302302
+learning_rate_alpha_0p2,learning_rate,alpha = 0.2,5000,0.2,0.99,1.0,0.05,0.999,6x8x12x12,42,173.39,257.14,,182.5,97.15580270884493
+discount_factor_gamma_0p95,discount_factor,gamma = 0.95,5000,0.1,0.95,1.0,0.05,0.999,6x8x12x12,42,276.29,276.29,,327.05,123.71357039549056
+discount_factor_gamma_0p99,discount_factor,gamma = 0.99,5000,0.1,0.99,1.0,0.05,0.999,6x8x12x12,42,205.71,243.71,,251.9,92.60448153302302
+discount_factor_gamma_0p999,discount_factor,gamma = 0.999,5000,0.1,0.999,1.0,0.05,0.999,6x8x12x12,42,260.45,286.56,,389.65,114.4243308916421
+exploration_start_0p5,exploration_start,epsilon_start = 0.5,5000,0.1,0.99,0.5,0.05,0.999,6x8x12x12,42,246.73,279.07,,172.9,35.88021739064578
+exploration_start_0p8,exploration_start,epsilon_start = 0.8,5000,0.1,0.99,0.8,0.05,0.999,6x8x12x12,42,206.44,267.14,,282.9,123.78364189181057
+exploration_start_1p0,exploration_start,epsilon_start = 1.0,5000,0.1,0.99,1.0,0.05,0.999,6x8x12x12,42,205.71,243.71,,251.9,92.60448153302302
 exploration_decay_0p99,exploration_decay,epsilon_decay = 0.99,5000,0.1,0.99,1.0,0.05,0.99,6x8x12x12,42,187.68,189.41,,196.8,99.75800719741748
 exploration_decay_0p995,exploration_decay,epsilon_decay = 0.995,5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,143.55,168.32,,134.25,39.100991036033854
-exploration_decay_0p999,exploration_decay,epsilon_decay = 0.999,5000,0.1,0.99,1.0,0.05,0.999,6x8x12x12,42,205.71,243.71,,251.9,92.60448153302302
-quantization_bins_4x6x8x8,quantization,"bins = (4, 6, 8, 8)",5000,0.1,0.99,1.0,0.05,0.995,4x6x8x8,42,153.99,274.25,,184.9,47.88935163478411
-quantization_bins_6x8x12x12,quantization,"bins = (6, 8, 12, 12)",5000,0.1,0.99,1.0,0.05,0.995,6x8x12x12,42,143.55,168.32,,134.25,39.100991036033854
-quantization_bins_8x10x14x14,quantization,"bins = (8, 10, 14, 14)",5000,0.1,0.99,1.0,0.05,0.995,8x10x14x14,42,104.37,106.16,,111.8,53.23213315282415
+exploration_decay_0p9995,exploration_decay,epsilon_decay = 0.9995,5000,0.1,0.99,1.0,0.05,0.9995,6x8x12x12,42,227.63,250.97,,270.6,89.4748009218238
+exploration_decay_0p9999,exploration_decay,epsilon_decay = 0.9999,5000,0.1,0.99,1.0,0.05,0.9999,6x8x12x12,42,60.41,71.28,,181.9,85.5259609709239
+quantization_bins_4x6x8x8,quantization,"bins = (4, 6, 8, 8)",5000,0.1,0.99,1.0,0.05,0.999,4x6x8x8,42,197.21,274.58,,130.4,37.916223440632905
+quantization_bins_6x8x12x12,quantization,"bins = (6, 8, 12, 12)",5000,0.1,0.99,1.0,0.05,0.999,6x8x12x12,42,205.71,243.71,,251.9,92.60448153302302
+quantization_bins_8x10x14x14,quantization,"bins = (8, 10, 14, 14)",5000,0.1,0.99,1.0,0.05,0.999,8x10x14x14,42,199.09,270.83,,154.55,87.08184368741857
